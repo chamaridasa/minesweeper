@@ -98,6 +98,7 @@ def load_sprites(path):
     images["f"] = pyglet.resource.image("tile_flag.png")
     graphics["images"] = images
 
+
 def load_duck(path):
     """
     Loads the necessary graphics for the duck game. This include the duck
@@ -375,10 +376,16 @@ def close():
     handlers again.
     """
 
+    """
     for handler in handlers["timeouts"]:
         pyglet.clock.unschedule(handler)
+    
     pyglet.app.exit()
-    graphics["window"].set_visible(False)
+
+    """
+    print("4")
+    if graphics["window"]:
+        pyglet.app.exit()  # Ensure the Pyglet app loop ends
 
 def clear_window():
     """

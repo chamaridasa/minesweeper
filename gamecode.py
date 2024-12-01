@@ -4,7 +4,7 @@ from datetime import datetime
 import sweeperlib
 
 # Constants
-TILE_SIZE = 40  # Tile size in pixels
+TILE_SIZE = 40
 
 # Global state dictionary
 state = {
@@ -74,6 +74,7 @@ def reveal_tile(x, y):
     if state["grid"][y][x] == "x":
         state["game_over"] = True
         state["end_time"] = time.time()
+        print("You hit a mine. Game over!")
         return
 
     if state["grid"][y][x] == 0:
@@ -82,6 +83,10 @@ def reveal_tile(x, y):
             nx, ny = x + dx, y + dy
             if 0 <= nx < state["width"] and 0 <= ny < state["height"]:
                 reveal_tile(nx, ny)
+
+    if state["game_over"]:
+        print("Game over! Returning to the main menu...")
+        return
 
 def toggle_flag(x, y):
     """Toggle a flag on the tile at the given coordinates."""
@@ -92,6 +97,10 @@ def toggle_flag(x, y):
 
 def draw_handler():
     """Handler for drawing the game screen."""
+    if state["game_over"]:
+        close_window()
+        return 
+
     sweeperlib.clear_window()
     sweeperlib.draw_background()
 
@@ -110,6 +119,8 @@ def draw_handler():
 
 def mouse_handler(x, y, button, modifiers):
     """Handler for mouse clicks."""
+    if state["game_over"]:
+        return 
     grid_x, grid_y = x // TILE_SIZE, y // TILE_SIZE
 
     if grid_x < 0 or grid_x >= state["width"] or grid_y < 0 or grid_y >= state["height"]:
@@ -121,6 +132,7 @@ def mouse_handler(x, y, button, modifiers):
         toggle_flag(grid_x, grid_y)
 
     if check_win():
+        print("Congratulations! You won!")
         state["game_over"] = True
         state["end_time"] = time.time()
 
@@ -130,7 +142,8 @@ def check_win():
         for x in range(state["width"]):
             if not state["revealed"][y][x] and state["grid"][y][x] != "x":
                 return False
-
+    state["game_over"] = True
+    state["end_time"] = time.time()
     return True
 
 def save_statistics():
@@ -144,6 +157,10 @@ def save_statistics():
         "mines": state["mines"]
     }
     state["stats"].append(stats)
+    
+def close_window():
+    """Close the game window and exit the game loop."""
+    sweeperlib.close()
 
 def main_menu():
     """Main menu for the game."""
@@ -160,10 +177,13 @@ def main_menu():
             mines = int(input("Enter number of mines: "))
 
             initialize_game(width, height, mines)
+            sweeperlib.load_sprites("sprites")
             sweeperlib.create_window(width * TILE_SIZE, height * TILE_SIZE)
             sweeperlib.set_draw_handler(draw_handler)
             sweeperlib.set_mouse_handler(mouse_handler)
+            
             sweeperlib.start()
+            close_window()
             save_statistics()
         elif choice == "2":
             print("\n--- Game Statistics ---")
